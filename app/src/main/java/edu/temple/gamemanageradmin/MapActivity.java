@@ -9,6 +9,8 @@ import android.widget.TextView;
 import edu.temple.gamemanager.WifiLocationTracker;
 
 public class MapActivity extends GMBaseActivity {
+    final WifiLocationTracker wifi = new WifiLocationTracker();
+
     /**
      *
      * @param savedInstanceState
@@ -18,16 +20,15 @@ public class MapActivity extends GMBaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
 
+        TextView compassTV = (TextView) findViewById(R.id.compassTv);
+        wifi.initializeActivity(this);
+        wifi.initializePositioning(compassTV);
+
         final EditText mapName = (EditText) findViewById(R.id.mapname_et);
         Button mapBtn = (Button) findViewById(R.id.map_btn);
-        TextView compassTV = (TextView) findViewById(R.id.compassTv);
-
-        final WifiLocationTracker wifi = new WifiLocationTracker();
-        // wifi.initializePositioning(compassTV);
         mapBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                //positionManager.map(mapName.getText().toString());
-                wifi.showShortToast("Position mapping complete!");
+                wifi.mapArea(mapName.getText().toString());
             }
         });
     }

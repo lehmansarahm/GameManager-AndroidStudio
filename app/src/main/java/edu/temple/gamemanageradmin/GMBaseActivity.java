@@ -1,6 +1,5 @@
 package edu.temple.gamemanageradmin;
 
-import android.Manifest;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -11,14 +10,6 @@ import android.view.MenuItem;
  *
  */
 public class GMBaseActivity extends AppCompatActivity {
-    protected static final String[] REQUEST_PERMISSIONS = new String[] {
-            Manifest.permission.ACCESS_WIFI_STATE,
-            Manifest.permission.CHANGE_WIFI_STATE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.INTERNET
-    };
-    protected static final int REQUEST_INITIAL = 1337;
-
     /**
      *
      * @param savedInstanceState

@@ -1,7 +1,6 @@
 package edu.temple.gamemanageradmin;
 
 import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
 import android.view.View;
 import android.widget.Button;
 
@@ -10,6 +9,7 @@ import edu.temple.gamemanager.WifiLocationTracker;
 
 public class PositionActivity extends GMBaseActivity implements LocationUpdateListener {
     final WifiLocationTracker wifi = new WifiLocationTracker();
+
     /**
      *
      * @param savedInstanceState
@@ -19,26 +19,23 @@ public class PositionActivity extends GMBaseActivity implements LocationUpdateLi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_position);
 
-        ActivityCompat.requestPermissions(this, REQUEST_PERMISSIONS, REQUEST_INITIAL);
         wifi.setLocationUpdateListener(this);
-        wifi.setActivity(this);
-        // wifi.initializePositioning();
+        wifi.initializeActivity(this);
+        wifi.initializePositioning();
 
         Button startBtn = (Button) findViewById(R.id.start_btn);
-        Button stopBtn = (Button) findViewById(R.id.stop_btn);
-
         startBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // positionManager.startPositioning(100);
-                wifi.showShortToast("Now scanning for positions.");
+                wifi.startPositionScanning();
             }
         });
+
+        Button stopBtn = (Button) findViewById(R.id.stop_btn);
         stopBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // positionManager.stopPositioning();
-                wifi.showShortToast("No longer scanning for positions.");
+                wifi.stopPositionScanning();
             }
         });
     }
@@ -48,7 +45,7 @@ public class PositionActivity extends GMBaseActivity implements LocationUpdateLi
      */
     @Override
     public void onRestrictedAreaEntered() {
-        // do something
+        wifi.showLongToast("You have entered a restricted area!");
     }
 
     /**
@@ -56,6 +53,6 @@ public class PositionActivity extends GMBaseActivity implements LocationUpdateLi
      */
     @Override
     public void onRestrictedAreaLeft() {
-        // do something
+        wifi.showLongToast("You are no longer in a restricted area.");
     }
 }

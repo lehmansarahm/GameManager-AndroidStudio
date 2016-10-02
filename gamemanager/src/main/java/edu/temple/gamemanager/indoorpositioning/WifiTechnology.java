@@ -14,25 +14,41 @@ import de.hadizadeh.positioning.model.SignalInformation;
 public class WifiTechnology extends Technology {
     private WifiManager wifiManager;
 
+    /**
+     *
+     * @param context
+     * @param name
+     */
     public WifiTechnology(Context context, String name) {
         super(name);
         wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
     }
 
+    /**
+     *
+     * @param context
+     * @param name
+     * @param keyWhiteList
+     */
     public WifiTechnology(Context context, String name, List<String> keyWhiteList) {
         super(name, keyWhiteList);
         wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
     }
 
+    /**
+     *
+     * @return
+     */
     @Override
     public Map<String, SignalInformation> getSignalData() {
-        Map<String, SignalInformation> signalData =
-                new HashMap<String, SignalInformation>();
+        Map<String, SignalInformation> signalData = new HashMap<String, SignalInformation>();
         wifiManager.startScan();
+
         List<ScanResult> scanResults = wifiManager.getScanResults();
         for (final ScanResult scanResult : scanResults) {
             signalData.put(scanResult.BSSID, new SignalInformation(scanResult.level));
         }
+
         return signalData;
     }
 }

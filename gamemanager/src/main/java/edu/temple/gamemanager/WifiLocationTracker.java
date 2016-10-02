@@ -2,25 +2,19 @@ package edu.temple.gamemanager;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.net.wifi.WifiManager;
 import android.os.Environment;
+import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import de.hadizadeh.positioning.controller.PositionListener;
 import de.hadizadeh.positioning.controller.PositionManager;
-import de.hadizadeh.positioning.controller.Technology;
 import de.hadizadeh.positioning.exceptions.PositioningException;
 import de.hadizadeh.positioning.exceptions.PositioningPersistenceException;
 import de.hadizadeh.positioning.model.PositionInformation;
@@ -31,38 +25,43 @@ import edu.temple.gamemanager.indoorpositioning.WifiTechnology;
  *
  */
 public class WifiLocationTracker implements PositionListener {
+    protected static final String[] REQUEST_PERMISSIONS = new String[] {
+            Manifest.permission.ACCESS_WIFI_STATE,
+            Manifest.permission.CHANGE_WIFI_STATE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.INTERNET
+    };
+    protected static final int REQUEST_INITIAL = 1337;
+
     private String FOLDER_NAME = "GameManager";
     private String FILE_NAME = "gm_wifi_config.txt";
 
     protected PositionManager positionManager;
 	protected LocationUpdateListener locUpdateListener;
-    protected Activity mCurrentActivity;	
-	private WifiConfigUtility wifiConfig;
-	
-	private Timer timer;
-	private boolean firstScan = true;
 
-    public void setActivityOnly(Activity activity) {
-        mCurrentActivity = activity;
-    }
+    private boolean permissionsGranted;
+    protected Activity currentActivity;
+    private File configFile;
 
 	/**
 	 * 
 	 * @param activity
 	 */
-    public void setActivity(Activity activity)
+    public void initializeActivity(Activity activity)
     {
-    	mCurrentActivity = activity;
+    	currentActivity = activity;
+        ActivityCompat.requestPermissions(currentActivity, REQUEST_PERMISSIONS, REQUEST_INITIAL);
+
     	int wifiPermissionStatus = 
-    			mCurrentActivity.checkCallingOrSelfPermission(Manifest.permission.CHANGE_WIFI_STATE);
+    			currentActivity.checkCallingOrSelfPermission(Manifest.permission.CHANGE_WIFI_STATE);
     	int extStoragePermissionStatus = 
-    			mCurrentActivity.checkCallingOrSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+    			currentActivity.checkCallingOrSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE);
     	
     	try {
         	if (wifiPermissionStatus == PackageManager.PERMISSION_GRANTED 
         			&& extStoragePermissionStatus == PackageManager.PERMISSION_GRANTED) {
-        		wifiConfig = new WifiConfigUtility();
-        		startWifiScanner();
+                permissionsGranted = true;
+                configFile = initializeConfig();
             }
         	else {
                 showLongToast("Insufficient wifi or external storage access.  "
@@ -92,24 +91,46 @@ public class WifiLocationTracker implements PositionListener {
      * @param compassTV
      */
     public void initializePositioning(TextView compassTV) {
-        try {
-            File configFile = new File(Environment.getExternalStorageDirectory(), FILE_NAME);
-            positionManager = new PositionManager(configFile);
-            Log.d("positionManager", "initialized");
-        } catch (PositioningPersistenceException ex) {
-            showLongToast("Could not instantiate Position Manager: " + ex.getMessage());
-        }
+        if (permissionsGranted) {
+            try {
+                positionManager = new PositionManager(configFile);
+                Log.d("positionManager", "initialized");
+            } catch (PositioningPersistenceException ex) {
+                showLongToast("Could not instantiate Position Manager: " + ex.getMessage());
+            }
 
-        try {
-            Technology wifiTechnology = new WifiTechnology(mCurrentActivity, "WIFI");
-            CompassTechnology compassTechnology = new CompassTechnology(mCurrentActivity, "compass", 80, compassTV);
+            try {
+                WifiTechnology wifiTechnology = new WifiTechnology(currentActivity, "wifi");
+                CompassTechnology compassTechnology = new CompassTechnology(currentActivity, "compass", 80, compassTV);
 
-            positionManager.addTechnology(wifiTechnology);
-            positionManager.addTechnology(compassTechnology);
-            positionManager.registerPositionListener(this);
-        } catch (PositioningException ex) {
-            showLongToast("Could not add wifi or compass to Position Manager: " + ex.getMessage());
+                positionManager.addTechnology(wifiTechnology);
+                positionManager.addTechnology(compassTechnology);
+                positionManager.registerPositionListener(this);
+            } catch (PositioningException ex) {
+                showLongToast("Could not add wifi or compass to Position Manager: " + ex.getMessage());
+            }
         }
+    }
+
+    public void mapArea(String areaName) {
+        positionManager.map(areaName);
+        showShortToast("Position mapping complete!");
+    }
+
+    /**
+     *
+     */
+    public void startPositionScanning() {
+        positionManager.startPositioning(100);
+        showShortToast("Now scanning for positions.");
+    }
+
+    /**
+     *
+     */
+    public void stopPositionScanning() {
+        positionManager.stopPositioning();
+        showShortToast("No longer scanning for positions.");
     }
 
     /**
@@ -117,7 +138,7 @@ public class WifiLocationTracker implements PositionListener {
      * @param message
      */
     public void showShortToast(String message) {
-        Toast.makeText(mCurrentActivity, message, Toast.LENGTH_SHORT).show();
+        Toast.makeText(currentActivity, message, Toast.LENGTH_SHORT).show();
     }
 
     /**
@@ -125,101 +146,41 @@ public class WifiLocationTracker implements PositionListener {
      * @param message
      */
     public void showLongToast(String message) {
-        Toast.makeText(mCurrentActivity, message, Toast.LENGTH_LONG).show();
-    }
-    
-    /**
-     * 
-     */
-    private void startWifiScanner() {
-        showShortToast("Attempting to start wifi scanner!");
-		final WifiManager wifi = (WifiManager) mCurrentActivity.getSystemService(Context.WIFI_SERVICE);
-        mCurrentActivity.registerReceiver(new BroadcastReceiver() {
-        	/**
-        	 * 
-        	 * @param c
-        	 * @param intent
-        	 */
-        	public void onReceive(Context c, Intent intent) {
-            try {
-                //if (firstScan) {
-                    wifiConfig.addScanResultsToRestrictedArea("lab333", wifi.getScanResults());
-                    wifiConfig.finalizeConfig();
-                    firstScan = false;
-                    showShortToast("Scans logged.  Ready to play!");
-                //} else {
-                //    String area = wifiConfig.compareScanResultsToRestrictedAreas(wifi.getScanResults());
-                //    handleAreaUpdate(area);
-                //}
-            } catch (Exception ex) {
-                showLongToast(ex.getMessage());
-            }
-        	}
-        }, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));        
-        
-        timer = new Timer();
-		timer.schedule(new WifiScanner(wifi), 0, 5000);
-        showShortToast("Wifi scanner started!");
-    }
-    
-    /**
-     * 
-     */
-    private void handleAreaUpdate(String areaComparisonResult) {
-    	boolean listenerAvailable = !(this.locUpdateListener == null);
-		if (areaComparisonResult.equals(WifiConfigUtility.NO_RESULTS_FOUND)) {
-			if (listenerAvailable) {
-				locUpdateListener.onRestrictedAreaLeft();
-			}
-            showShortToast("Congrats, you're in an approved area!");
-		} else {
-			if (listenerAvailable) {
-				locUpdateListener.onRestrictedAreaEntered();
-			}
-            showShortToast("Oh no, you're in a restricted area!");
-		}
+        Toast.makeText(currentActivity, message, Toast.LENGTH_LONG).show();
     }
 
     @Override
     public void positionReceived(final PositionInformation positionInformation) {
-        // Evaluate for restricted area entry / departure
-        // Raise the corresponding events as necessary
+        comparePosition(positionInformation);
     }
 
     @Override
     public void positionReceived(final List<PositionInformation> positionInformation) {
-        // Evaluate for restricted area entry / departure
-        // Raise the corresponding events as necessary
-
-        /*currentPositionTv.post(new Runnable() {
-            public void run() {
-                String positioningText = "";
-                for (int i = 0; i < positionInformation.size(); i++) {
-                    positioningText += i + ".: " + positionInformation.get(i).getName() + System.getProperty("line.separator");
-                }
-                currentPositionTv.setText(positioningText);
-            }
-        });*/
+        comparePosition(positionInformation.get(0));
     }
 
     /**
-     * 
+     *
      */
-	private class WifiScanner extends TimerTask {
-		private WifiManager wifiManager;
-		
-		/**
-		 * 
-		 */
-		public WifiScanner(WifiManager manager) {
-			this.wifiManager = manager;
-		}
-		
-		/**
-		 * 
-		 */
-		public void run() {
-			wifiManager.startScan();
-		}
-	}
+    private File initializeConfig() throws IOException {
+        File folder = new File(Environment.getExternalStorageDirectory(), FOLDER_NAME);
+        if (!folder.exists()) {
+            folder.mkdirs();
+        }
+
+        File configFile = new File(folder, FILE_NAME);
+        return configFile;
+    }
+
+    /**
+     *
+     * @param positionInformation
+     */
+    private void comparePosition(PositionInformation positionInformation) {
+        if (positionInformation.getName().equals("Desk")) {
+            this.locUpdateListener.onRestrictedAreaEntered();
+        } else {
+            this.locUpdateListener.onRestrictedAreaLeft();
+        }
+    }
 }
