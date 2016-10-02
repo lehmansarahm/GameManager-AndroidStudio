@@ -29,6 +29,7 @@ public class WifiLocationTracker implements PositionListener {
     protected static final String[] REQUEST_PERMISSIONS = new String[] {
             Manifest.permission.ACCESS_WIFI_STATE,
             Manifest.permission.CHANGE_WIFI_STATE,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.INTERNET
     };
@@ -39,6 +40,7 @@ public class WifiLocationTracker implements PositionListener {
 
     protected PositionManager positionManager;
 	protected LocationUpdateListener locUpdateListener;
+    private WifiTechnology wifiTechnology;
 
     private boolean permissionsGranted;
     protected Activity currentActivity;
@@ -101,7 +103,7 @@ public class WifiLocationTracker implements PositionListener {
             }
 
             try {
-                WifiTechnology wifiTechnology = new WifiTechnology(currentActivity, "wifi");
+                wifiTechnology = new WifiTechnology(currentActivity, "wifi");
                 CompassTechnology compassTechnology = new CompassTechnology(currentActivity, "compass", 80, compassTV);
 
                 positionManager.addTechnology(wifiTechnology);
@@ -190,7 +192,7 @@ public class WifiLocationTracker implements PositionListener {
      * @param positionInformation
      */
     private void comparePosition(PositionInformation positionInformation) {
-        if (positionInformation.getName().equals("Desk")) {
+        if (positionInformation.getName().equalsIgnoreCase("Desk")) {
             this.locUpdateListener.onRestrictedAreaEntered();
         } else {
             this.locUpdateListener.onRestrictedAreaLeft();
