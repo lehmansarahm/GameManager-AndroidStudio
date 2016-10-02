@@ -20,6 +20,7 @@ import de.hadizadeh.positioning.exceptions.PositioningPersistenceException;
 import de.hadizadeh.positioning.model.PositionInformation;
 import edu.temple.gamemanager.indoorpositioning.CompassTechnology;
 import edu.temple.gamemanager.indoorpositioning.WifiTechnology;
+import edu.temple.gamemanager.interfaces.LocationUpdateListener;
 
 /**
  *
@@ -112,6 +113,10 @@ public class WifiLocationTracker implements PositionListener {
         }
     }
 
+    /**
+     *
+     * @param areaName
+     */
     public void mapArea(String areaName) {
         positionManager.map(areaName);
         showShortToast("Position mapping complete!");
@@ -149,11 +154,19 @@ public class WifiLocationTracker implements PositionListener {
         Toast.makeText(currentActivity, message, Toast.LENGTH_LONG).show();
     }
 
+    /**
+     *
+     * @param positionInformation
+     */
     @Override
     public void positionReceived(final PositionInformation positionInformation) {
         comparePosition(positionInformation);
     }
 
+    /**
+     *
+     * @param positionInformation
+     */
     @Override
     public void positionReceived(final List<PositionInformation> positionInformation) {
         comparePosition(positionInformation.get(0));

@@ -4,7 +4,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
-import edu.temple.gamemanager.LocationUpdateListener;
+import edu.temple.gamemanager.interfaces.LocationUpdateListener;
 import edu.temple.gamemanager.WifiLocationTracker;
 
 public class PositionActivity extends GMBaseActivity implements LocationUpdateListener {

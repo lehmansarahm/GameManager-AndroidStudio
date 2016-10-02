@@ -3,6 +3,8 @@ package edu.temple.gamemanager;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import edu.temple.gamemanager.interfaces.TimerUpdateListener;
+
 /**
  * A secondary logic class for the Game Manager library.  Allows us to fire
  * regularly timed update events.

@@ -1,4 +1,4 @@
-package edu.temple.gamemanager;
+package edu.temple.gamemanager.interfaces;
 
 /**
  * Event listener to allow Unity classes to subscribe 
