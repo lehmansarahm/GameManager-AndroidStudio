@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
-import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -40,7 +39,6 @@ public class WifiLocationTracker implements PositionListener {
 
     protected PositionManager positionManager;
 	protected LocationUpdateListener locUpdateListener;
-    private WifiTechnology wifiTechnology;
 
     private boolean permissionsGranted;
     protected Activity currentActivity;
@@ -97,13 +95,12 @@ public class WifiLocationTracker implements PositionListener {
         if (permissionsGranted) {
             try {
                 positionManager = new PositionManager(configFile);
-                Log.d("positionManager", "initialized");
             } catch (PositioningPersistenceException ex) {
                 showLongToast("Could not instantiate Position Manager: " + ex.getMessage());
             }
 
             try {
-                wifiTechnology = new WifiTechnology(currentActivity, "wifi");
+                WifiTechnology wifiTechnology = new WifiTechnology(currentActivity, "wifi");
                 CompassTechnology compassTechnology = new CompassTechnology(currentActivity, "compass", 80, compassTV);
 
                 positionManager.addTechnology(wifiTechnology);
@@ -128,6 +125,13 @@ public class WifiLocationTracker implements PositionListener {
      *
      */
     public void startPositionScanning() {
+        // Debugging block for investigating tech states
+        /*List<Technology> techs = positionManager.getTechnologies();
+        for (int i = 0; i < techs.size(); i++) {
+            Technology tech = techs.get(i);
+            showShortToast("Tech: " + tech.getName() + " is scanning exactly: " + tech.isExactly());
+        }*/
+
         positionManager.startPositioning(100);
         showShortToast("Now scanning for positions.");
     }
@@ -162,7 +166,12 @@ public class WifiLocationTracker implements PositionListener {
      */
     @Override
     public void positionReceived(final PositionInformation positionInformation) {
-        comparePosition(positionInformation);
+        currentActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                comparePosition(positionInformation);
+            }
+        });
     }
 
     /**
@@ -171,7 +180,12 @@ public class WifiLocationTracker implements PositionListener {
      */
     @Override
     public void positionReceived(final List<PositionInformation> positionInformation) {
-        comparePosition(positionInformation.get(0));
+        currentActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                comparePosition(positionInformation.get(0));
+            }
+        });
     }
 
     /**
