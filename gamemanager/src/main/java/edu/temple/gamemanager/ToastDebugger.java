@@ -9,6 +9,7 @@ public class ToastDebugger {
     /**
      * Sets the activity for the class so that the message
      * can be displayed
+     * @param activity the context in which to display messages
      */
     public void setActivity(Activity activity)
     {
@@ -18,6 +19,7 @@ public class ToastDebugger {
     /**
      * Uses the activity to display a Toast message to the user
      * with the provided message
+     * @param message the message to display
      */
     public void showMessage(final String message)
     {

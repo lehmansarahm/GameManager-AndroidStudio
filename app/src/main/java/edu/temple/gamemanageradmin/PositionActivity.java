@@ -8,12 +8,19 @@ import android.widget.TextView;
 import edu.temple.gamemanager.WifiLocationTracker;
 import edu.temple.gamemanager.interfaces.LocationUpdateListener;
 
+/**
+ * Basic activity to demonstrate the scanning and determining of
+ * positions.  Includes buttons to explicitly start and stop
+ * scanning.  Also demonstrates the use of the Location Update
+ * Listener interface, which allows us to designate when the user
+ * has entered or exited a restricted area.
+ */
 public class PositionActivity extends GMBaseActivity implements LocationUpdateListener {
     final WifiLocationTracker wifi = new WifiLocationTracker();
 
     /**
-     *
-     * @param savedInstanceState
+     * Creates the activity to be displayed
+     * @param savedInstanceState the instance state to create
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,7 +28,7 @@ public class PositionActivity extends GMBaseActivity implements LocationUpdateLi
         setContentView(R.layout.activity_position);
 
         wifi.setLocationUpdateListener(this);
-        wifi.initializeActivity(this);
+        wifi.initializeActivity(this, true);
         wifi.initializePositioning();
 
         Button startBtn = (Button) findViewById(R.id.start_btn);
@@ -42,21 +49,29 @@ public class PositionActivity extends GMBaseActivity implements LocationUpdateLi
     }
 
     /**
+     * Event handler for Location Update Listener class.  Allows us to
+     * designate the activity's response to the Wifi Location Tracker
+     * determining that we have entered a restricted area.
      *
+     * In this case, it simply updates the "current position" TextView
+     * object on the phone screen to inform the user of the area transition.
      */
     @Override
     public void onRestrictedAreaEntered() {
-        // wifi.showLongToast("You have entered a restricted area!");
         TextView positionTV = (TextView) findViewById(R.id.current_position_tv);
         positionTV.setText("You have entered a restricted area!");
     }
 
     /**
+     * Event handler for Location Update Listener class.  Allows us to
+     * designate the activity's response to the Wifi Location Tracker
+     * determining that we have exited a restricted area.
      *
+     * In this case, it simply updates the "current position" TextView
+     * object on the phone screen to inform the user of the area transition.
      */
     @Override
     public void onRestrictedAreaLeft() {
-        // wifi.showLongToast("You are no longer in a restricted area.");
         TextView positionTV = (TextView) findViewById(R.id.current_position_tv);
         positionTV.setText("You are no longer in a restricted area.");
     }

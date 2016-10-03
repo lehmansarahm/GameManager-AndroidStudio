@@ -14,6 +14,13 @@ import java.util.Map;
 import de.hadizadeh.positioning.controller.ExclusionTechnology;
 import de.hadizadeh.positioning.model.SignalInformation;
 
+/**
+ * Originally written by D. Hadizadeh as part of Android Studio
+ * sample project for his "Indoor Positioning Solution" Java library.
+ * Reproduced here as part of an open source solution.
+ *
+ * @author David Hadizadeh, mail@hadizadeh.de
+ */
 public class CompassTechnology extends ExclusionTechnology {
 
     private float bearing;

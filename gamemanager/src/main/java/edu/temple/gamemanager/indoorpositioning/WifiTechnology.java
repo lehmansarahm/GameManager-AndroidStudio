@@ -11,34 +11,26 @@ import java.util.Map;
 import de.hadizadeh.positioning.controller.Technology;
 import de.hadizadeh.positioning.model.SignalInformation;
 
+/**
+ * Originally written by D. Hadizadeh as part of Android Studio
+ * sample project for his "Indoor Positioning Solution" Java library.
+ * Reproduced here as part of an open source solution.
+ *
+ * @author David Hadizadeh, mail@hadizadeh.de
+ */
 public class WifiTechnology extends Technology {
     private WifiManager wifiManager;
 
-    /**
-     *
-     * @param context
-     * @param name
-     */
     public WifiTechnology(Context context, String name) {
         super(name);
         wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
     }
 
-    /**
-     *
-     * @param context
-     * @param name
-     * @param keyWhiteList
-     */
     public WifiTechnology(Context context, String name, List<String> keyWhiteList) {
         super(name, keyWhiteList);
         wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
     }
 
-    /**
-     *
-     * @return
-     */
     @Override
     public Map<String, SignalInformation> getSignalData() {
         Map<String, SignalInformation> signalData = new HashMap<String, SignalInformation>();

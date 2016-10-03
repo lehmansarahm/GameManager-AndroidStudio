@@ -8,12 +8,17 @@ import android.widget.TextView;
 
 import edu.temple.gamemanager.WifiLocationTracker;
 
+/**
+ * A basic activity to allow a user to map locations and log their
+ * wifi and compass scans to the config file.  Utilizes the Game
+ * Manager library only - no explicit positioning logic.
+ */
 public class MapActivity extends GMBaseActivity {
     final WifiLocationTracker wifi = new WifiLocationTracker();
 
     /**
-     *
-     * @param savedInstanceState
+     * Creates the activity to be displayed
+     * @param savedInstanceState the instance state to create
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
